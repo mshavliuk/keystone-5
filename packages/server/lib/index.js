@@ -4,7 +4,35 @@ const path = require('path');
 const falsey = require('falsey');
 const { commonSessionMiddleware } = require('@keystone-alpha/session');
 const createGraphQLMiddleware = require('./graphql');
-const { createApolloServer } = require('./apolloServer');
+const { createApolloServer  }= require('./apolloServer.js');
+
+const createPublicAPI = (
+  app,
+  keystone,
+  accessRestriction,
+  apollo,
+  { apiPath, graphiqlPath, port }
+) => {
+  const server = createApolloServer(keystone, apollo, 'public', accessRestriction);
+  app.use(createGraphQLMiddleware(server, { apiPath, graphiqlPath, port, public: true }));
+};
+
+const createAPI = (
+  app,
+  keystone,
+  accessRestriction,
+  apollo,
+  { name, apiPath, graphiqlPath, port, public, allowedAudiences }
+) => {
+  const server = createApolloServer(keystone, apollo, name, accessRestriction);
+  app.use(createGraphQLMiddleware, server, {
+    apiPath,
+    graphiqlPath,
+    port,
+    public,
+    allowedAudiences,
+  });
+};
 
 module.exports = class WebServer {
   constructor(
@@ -42,11 +70,18 @@ module.exports = class WebServer {
       // Inject the Admin specific session routes.
       // ie; this includes the signin/signout UI
       this.app.use(adminUI.createSessionMiddleware());
+      // Created a session middleware which will set audiences: ['admin']
+      // We might want to add more different signin middlewares which let the user authenticate against different
+      // strategies/allow access to different schemas!
     }
 
-    const server = createApolloServer(keystone, apollo, 'admin');
-
     // GraphQL API always exists independent of any adminUI or Session settings
+    const { apollo } = this.config;
+    const schemaName = 'admin';
+    const accessRestriction = null;
+    const server = createApolloServer(keystone, apollo, schemaName, accessRestriction);
+
+    const { apiPath, graphiqlPath, port } = this.config;
     // We currently make the admin UI public. In the future we want to be able
     // to restrict this to a limited audience, while setting up a separate
     // public API with much stricter access control.
