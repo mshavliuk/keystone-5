@@ -1,6 +1,7 @@
 import pLazy from 'p-lazy';
 import pReflect from 'p-reflect';
 import isPromise from 'p-is-promise';
+import invariant from 'tiny-invariant';
 
 export const noop = x => x;
 export const identity = noop;
@@ -184,4 +185,20 @@ export const captureSuspensePromises = executors => {
   }
 
   return values;
+};
+
+const emptyArray = [];
+
+export const spliceImmutably = (
+  collection,
+  index,
+  deleteNum = collection.length,
+  newStuff = emptyArray,
+) => {
+  invariant(index >= 0, 'Index must be a positive integer');
+  invariant(deleteNum >= 0, 'deleteNum must be a positive integer');
+  invariant(Array.isArray(newStuff), 'Must provide an array to insert');
+  return collection
+    .slice(0, index)
+    .concat(...newStuff, collection.slice(index + deleteNum));
 };

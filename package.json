@@ -250,6 +250,7 @@
     "split": "^1.0.1",
     "stack-utils": "^1.0.2",
     "terser": "^3.14.1",
+    "tiny-invariant": "^1.0.4",
     "tinymce": "^5.0.3",
     "to-pascal-case": "^1.0.0",
     "underscore.string": "^3.3.5",
